@@ -50,25 +50,30 @@ class InventoryUtils extends BaseUtils
           actions.push a
     actions
 
-  # Private: map inventory expected deliveries
+  # Private: map inventory supply channel
   #
   # diff - {Object} The result of diff from `jsondiffpatch`
   # old_obj - {Object} The existing inventory
   #
   # Returns {Array} The list of actions, or empty if there are none
-  actionsMapExpectedDelivery: (diff, old_obj) ->
+  actionsMapSupplyChannel: (diff, old_obj) ->
     actions = []
-    if diff.expectedDelivery
-      if _.isArray(diff.expectedDelivery)
-        size = _.size(diff.expectedDelivery)
-        a =
-          action: 'setExpectedDelivery'
+    propertyDiff = diff['supplyChannel']
+
+    if propertyDiff
+      a =
+        action: 'setSupplyChannel'
+
+      if _.isArray(propertyDiff)
+        size = _.size(propertyDiff)
         if size is 1
-          a.expectedDelivery = diff.expectedDelivery[0]
+          a['supplyChannel'] = propertyDiff[0]
         else if size is 2
-          a.expectedDelivery = diff.expectedDelivery[1]
-        # Delete case (size is 3) - we do not set any expectedDelivery
-        actions.push a
+          a['supplyChannel'] = propertyDiff[1]
+      else if _.isObject(propertyDiff)
+        a['supplyChannel'] = { id: @getDeltaValue(propertyDiff.id) }
+
+      actions.push a
     actions
 
   # Private: map inventory custom type and fields

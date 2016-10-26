@@ -23,7 +23,10 @@ describe 'InventorySync', ->
         id: '123'
         quantityOnStock: 10
         version: 1
-      spyOn(@sync._utils, 'actionsMapExpectedDelivery').andReturn [{action: 'setExpectedDelivery', expectedDelivery: "2001-09-11T14:00:00.000Z"}]
+      spyOn(@sync._utils, 'actionsMapSingleValue').andReturn [{
+        action: 'setExpectedDelivery',
+        expectedDelivery: "2001-09-11T14:00:00.000Z"
+      }]
       update = @sync.config(opts).buildActions(newInventory, oldInventory).getUpdatePayload()
       expected_update =
         actions: [
@@ -155,6 +158,65 @@ describe 'InventorySync', ->
       expect(update).toBeDefined()
       expect(update.actions[0].action).toBe 'setExpectedDelivery'
       expect(update.actions[0].expectedDelivery).toBeUndefined()
+
+
+    describe 'supplyChannel', ->
+
+      it 'should add supplyChannel', ->
+        ieNew =
+          sku: 'xyz'
+          quantityOnStock: 9
+          supplyChannel: {
+            typeId: 'channel',
+            id: 1001
+          }
+        ieOld =
+          sku: 'xyz'
+          quantityOnStock: 9
+
+        update = @sync.buildActions(ieNew, ieOld).getUpdatePayload()
+        expect(update).toBeDefined()
+        expect(update.actions[0].action).toBe 'setSupplyChannel'
+        expect(update.actions[0].supplyChannel.id).toBe 1001
+
+      it 'should update supplyChannel', ->
+        ieNew =
+          sku: 'abc'
+          quantityOnStock: 0
+          supplyChannel: {
+            typeId: 'channel',
+            id: 1001
+          }
+        ieOld =
+          sku: 'abc'
+          quantityOnStock: 0
+          supplyChannel: {
+            typeId: 'channel',
+            id: 8077
+          }
+
+        update = @sync.buildActions(ieNew, ieOld).getUpdatePayload()
+        expect(update).toBeDefined()
+        expect(update.actions[0].action).toBe 'setSupplyChannel'
+        expect(update.actions[0].supplyChannel.id).toBe 1001
+
+      it 'should remove supplyChannel', ->
+        ieNew =
+          sku: 'abc'
+          quantityOnStock: 0
+        ieOld =
+          sku: 'abc'
+          quantityOnStock: 0
+          supplyChannel: {
+            typeId: 'channel',
+            id: 8077
+          }
+
+        update = @sync.buildActions(ieNew, ieOld).getUpdatePayload()
+        expect(update).toBeDefined()
+        expect(update.actions[0].action).toBe 'setSupplyChannel'
+        expect(update.actions[0].supplyChannel).toBeUndefined()
+
 
     describe 'actionsMapCustom', ->
       ieNew =
