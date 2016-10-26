@@ -4,6 +4,29 @@ BaseUtils = require './base'
 # Private: utilities for inventory sync
 class InventoryUtils extends BaseUtils
 
+  # Private: map simple single value: String, Number or Boolean
+  #
+  # diff - {Object} The result of diff from `jsondiffpatch`
+  # old_obj - {Object} The existing inventory
+  #
+  # Returns {Array} The list of actions, or empty if there are none
+  actionsMapSingleValue: (diff, old_obj, property) ->
+    actions = []
+    propertyDiff = diff[property]
+    actionName = 'set' + property[0].toUpperCase() + property.slice(1)
+
+    if propertyDiff
+      if _.isArray(propertyDiff)
+        size = _.size(propertyDiff)
+        a =
+          action: actionName
+        if size is 1
+          a[property] = propertyDiff[0]
+        else if size is 2
+          a[property] = propertyDiff[1]
+        actions.push a
+    actions
+
   # Private: map inventory quantities
   #
   # diff - {Object} The result of diff from `jsondiffpatch`

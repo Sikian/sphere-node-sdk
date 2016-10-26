@@ -32,6 +32,7 @@ describe 'InventorySync', ->
         version: oldInventory.version
       expect(update).toEqual expected_update
 
+
   describe ':: buildActions', ->
 
     it 'no differences', ->
@@ -67,6 +68,53 @@ describe 'InventorySync', ->
       expect(update).toBeDefined()
       expect(update.actions[0].action).toBe 'removeQuantity'
       expect(update.actions[0].quantity).toBe 2
+
+
+    describe 'restockableInDays', ->
+
+      it 'should add restockableInDays', ->
+        ieNew =
+          sku: 'xyz'
+          quantityOnStock: 9
+          restockableInDays: 13
+        ieOld =
+          sku: 'xyz'
+          quantityOnStock: 9
+
+        update = @sync.buildActions(ieNew, ieOld).getUpdatePayload()
+        expect(update).toBeDefined()
+        expect(update.actions[0].action).toBe 'setRestockableInDays'
+        expect(update.actions[0].restockableInDays).toBe 13
+
+      it 'should update restockableInDays', ->
+        ieNew =
+          sku: 'abc'
+          quantityOnStock: 0
+          restockableInDays: 13
+        ieOld =
+          sku: 'abc'
+          quantityOnStock: 0
+          restockableInDays: 37
+
+        update = @sync.buildActions(ieNew, ieOld).getUpdatePayload()
+        expect(update).toBeDefined()
+        expect(update.actions[0].action).toBe 'setRestockableInDays'
+        expect(update.actions[0].restockableInDays).toBe 13
+
+      it 'should remove restockableInDays', ->
+        ieNew =
+          sku: 'abc'
+          quantityOnStock: 0
+        ieOld =
+          sku: 'abc'
+          quantityOnStock: 0
+          restockableInDays: 37
+
+        update = @sync.buildActions(ieNew, ieOld).getUpdatePayload()
+        expect(update).toBeDefined()
+        expect(update.actions[0].action).toBe 'setRestockableInDays'
+        expect(update.actions[0].restockableInDays).toBeUndefined()
+
 
     it 'should add expectedDelivery', ->
       ieNew =
@@ -128,7 +176,7 @@ describe 'InventorySync', ->
 
         update = @sync.buildActions(ieNew, ieOld).getUpdatePayload()
         expect(update.actions[0].action).toBe 'setCustomType'
-        expect(update.actions[0].type).toEqual { typeId : 'type', id : '123' }
+        expect(update.actions[0].type).toEqual { typeId: 'type', id: '123' }
         expect(update.actions[0].fields).toEqual { nac: 'ho' }
 
       it 'should update custom type', ->
@@ -143,7 +191,7 @@ describe 'InventorySync', ->
 
         update = @sync.buildActions(ieNew, ieOld).getUpdatePayload()
         expect(update.actions[0].action).toBe 'setCustomType'
-        expect(update.actions[0].type).toEqual { typeId : 'type', id : '123' }
+        expect(update.actions[0].type).toEqual { typeId: 'type', id: '123' }
 
       it 'should update custom fields', ->
         ieOld =
